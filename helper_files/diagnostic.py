@@ -121,9 +121,9 @@ if tf.config.list_physical_devices('GPU'):
         
         print(f"\nSpeedup: {cpu_train_time/gpu_train_time:.2f}x")
         if gpu_train_time > cpu_train_time:
-            print("⚠️  GPU is slower than CPU - something is wrong!")
+            print("GPU is slower than CPU - something is wrong")
         else:
-            print("✅ GPU is faster than CPU")
+            print("GPU is faster than CPU")
 
 print("\n=== Next Steps ===")
 print("1. Run 'nvidia-smi' in another terminal during this script")

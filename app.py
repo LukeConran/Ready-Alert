@@ -8,11 +8,12 @@ app.config['PROPAGATE_EXCEPTIONS'] = True
 
 frames = []
 
+MAX_FRAMES = 60  # ~5 seconds at 30fps
+
 def capture_webcam():
     global frames
     frames = []
-    cv2.namedWindow("preview")
-    for index in range(3):  # Try indices 0, 1, 2
+    for index in range(3):
         vc = cv2.VideoCapture(index)
         if vc.isOpened():
             break
@@ -21,16 +22,11 @@ def capture_webcam():
         return False  # No webcam found
 
     rval, frame = vc.read()
-    while rval:
+    while rval and len(frames) < MAX_FRAMES:
         frames.append(frame)
-        cv2.imshow("preview", frame)
         rval, frame = vc.read()
-        key = cv2.waitKey(20)
-        if key == 27:  # Exit on ESC
-            break
 
     vc.release()
-    cv2.destroyWindow("preview")
     return len(frames) > 0
 
 @app.route('/')
@@ -59,7 +55,7 @@ def index():
             <h1 style="font-family: Verdana; color:#373e43">DROWSY DRIVING DETECTOR</h1>
         </div>
         <div style="margin-top: 50px; font-family: Arial">
-            <p>Press the button below to begin capturing facial footage. When finished, press the escape key.</p>
+            <p>Press the button below to begin capturing facial footage. It will proceed for two seconds.</p>
         </div>
         <div class="container" style="display: flex">
             <div class="left-div">
@@ -74,7 +70,7 @@ def index():
         </div>
         <script>
         function runWebcam() {
-            document.getElementById('cam_status').innerText = 'Capturing video... Press ESC to stop.';
+            document.getElementById('cam_status').innerText = 'Capturing video...';
             fetch('/run_script')
                 .then(response => response.json())
                 .then(data => {

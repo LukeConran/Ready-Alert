@@ -10,7 +10,7 @@ sys.path.insert(0, 'detection')
 import detector
 
 detector.EAR_THRESHOLD = 0.8
-detector.ALERT_PCT = 0.33
+detector.ALERT_PCT = 0.52
 detector.WINDOW_FRAMES = 30
 
 dlib_detector  = detector.detector
@@ -58,7 +58,8 @@ class CameraThread(threading.Thread):
                 time.sleep(0.05)
                 continue
 
-            gray  = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            small = cv2.resize(frame, (0, 0), fx=0.5, fy=0.5)
+            gray  = cv2.cvtColor(small, cv2.COLOR_BGR2GRAY)
             faces = dlib_detector(gray, 1)
             ear = None
 
@@ -66,9 +67,9 @@ class CameraThread(threading.Thread):
                 lm = dlib_predictor(gray, faces[0])
                 ear = detector._ear(lm, 36, 42) * 0.5 + detector._ear(lm, 42, 48) * 0.5
 
-                # Draw eye outlines
+                # Draw eye outlines scaled back to full-res frame
                 for s, e in [(36, 42), (42, 48)]:
-                    pts = np.array([[lm.part(i).x, lm.part(i).y] for i in range(s, e)], np.int32)
+                    pts = np.array([[lm.part(i).x * 2, lm.part(i).y * 2] for i in range(s, e)], np.int32)
                     cv2.polylines(frame, [pts], True, (0, 255, 0), 1)
 
             with self.lock:
@@ -77,11 +78,11 @@ class CameraThread(threading.Thread):
             if mode == 'calibrating':
                 if ear is not None:
                     self._calib_frames.append(ear)
-                if len(self._calib_frames) >= 90:
+                if len(self._calib_frames) >= 50:
                     self._baseline = float(np.mean(self._calib_frames))
                     with self.lock:
                         self._mode = 'detecting'
-                        self.status = 'alert'
+                        self.status = 'saving'
                     self._calib_done.set()
 
             elif mode == 'detecting':
@@ -183,6 +184,8 @@ function startPolling() {
         el.className = 'alert'; el.innerText = 'NOT DROWSY';
       } else if (data.status === 'no_face') {
         el.className = 'muted'; el.innerText = 'No face detected';
+      } else if (data.status === 'saving') {
+        el.className = 'muted'; el.innerText = 'Saving...';
       } else {
         el.className = 'muted'; el.innerText = '...';
       }

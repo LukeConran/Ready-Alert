@@ -6,8 +6,8 @@ from detector import extract_ear
 CALIB_FRAMES  = 300
 TEST_SUBJECTS = ['A','B','C','D','E','H','I','J','K','L','M','N','O','P','Q','R','S','U','V','W','X','Y','ZA','ZB','ZC']
 
-THRESHOLDS  = [0.75, 0.80, 0.85, 0.90]
-ALERT_PCTS  = [0.25, 0.33, 0.40, 0.50]
+THRESHOLDS = np.round(np.arange(0.75, 0.91, 0.01), 2).tolist()  # 0.75 → 0.90, 16 values
+ALERT_PCTS = np.round(np.arange(0.20, 0.61, 0.02), 2).tolist()  # 0.20 → 0.60, 21 values
 WINDOW_SIZE = 30
 
 
@@ -60,3 +60,6 @@ if __name__ == '__main__':
 
     df = pd.DataFrame(rows)
     print("\n" + df.to_string(index=False))
+    out = '../data/sweep_results.csv'
+    df.to_csv(out, index=False)
+    print(f"\nSaved to {out}")

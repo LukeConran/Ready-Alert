@@ -178,10 +178,10 @@
 import { FaceLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/vision_bundle.mjs";
 
 // ─── Config ────────────────────────────────────────────────────────────────────
-const CALIB_FRAMES  = 50;
-const WINDOW_FRAMES = 30;
-const ALERT_PCT     = 0.32;
-const EAR_RATIO     = 0.81;
+const CALIB_DURATION_MS = 3000;  // 3 seconds of calibration
+const WINDOW_MS         = 4000;  // rolling 4-second window
+const ALERT_PCT         = 0.48;  // 40% of window below threshold → drowsy
+const EAR_RATIO         = 0.79;
 
 // MediaPipe Face Mesh eye landmark indices (478-point model)
 const LEFT_EYE  = [33, 160, 158, 133, 153, 144];
@@ -190,9 +190,10 @@ const RIGHT_EYE = [362, 385, 387, 263, 373, 380];
 // ─── State ─────────────────────────────────────────────────────────────────────
 let faceLandmarker = null;
 let baseline = null;
-let earWindow = [];
+let earWindow = [];  // [{t: timestamp, below: bool}]
 let calibrating = false;
 let calibEars = [];
+let calibStart = 0;
 let detecting = false;
 let audioCtx = null;
 let lastBeep = 0;
@@ -296,9 +297,11 @@ function detect() {
       });
 
       if (calibrating) {
+        const elapsed = now - calibStart;
+        const pct = Math.min(100, Math.round(elapsed / CALIB_DURATION_MS * 100));
         calibEars.push(e);
-        earReadout.textContent = `Calibrating: ${calibEars.length}/${CALIB_FRAMES}`;
-        if (calibEars.length >= CALIB_FRAMES) {
+        earReadout.textContent = `Calibrating: ${pct}%`;
+        if (elapsed >= CALIB_DURATION_MS) {
           calibrating = false;
           baseline = calibEars.reduce((a,b) => a+b, 0) / calibEars.length;
           earReadout.textContent = `Baseline EAR: ${baseline.toFixed(3)}`;
@@ -308,10 +311,12 @@ function detect() {
         }
       } else if (detecting) {
         earReadout.textContent = `EAR: ${e.toFixed(3)}  |  baseline: ${baseline.toFixed(3)}`;
-        earWindow.push(e < baseline * EAR_RATIO);
-        if (earWindow.length > WINDOW_FRAMES) earWindow.shift();
-        if (earWindow.length === WINDOW_FRAMES) {
-          const frac = earWindow.filter(Boolean).length / WINDOW_FRAMES;
+        // Time-based rolling window — drop entries older than WINDOW_MS
+        earWindow.push({ t: now, below: e < baseline * EAR_RATIO });
+        while (earWindow.length > 0 && now - earWindow[0].t > WINDOW_MS) earWindow.shift();
+        if (now - earWindow[0].t >= WINDOW_MS * 0.75) {
+          // Only alert once we have at least 75% of the window filled
+          const frac = earWindow.filter(r => r.below).length / earWindow.length;
           if (frac >= ALERT_PCT) {
             badge.className = 'drowsy'; badge.textContent = 'DROWSY';
             beep();
@@ -335,6 +340,7 @@ window.startCalibration = function() {
   calibBtn.disabled = true;
   badge.className = 'calib'; badge.textContent = 'Calibrating…';
   detecting = false; calibrating = true; calibEars = []; earWindow = [];
+  calibStart = performance.now();
 };
 
 // ─── Init ──────────────────────────────────────────────────────────────────────

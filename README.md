@@ -2,7 +2,7 @@
 
 Real-time drowsiness detection that runs in your browser. No ML model needed at inference time — just math.
 
-**[Try it live →](https://YOUR-VERCEL-URL.vercel.app)**
+**[Try it live →](https://readyalert.lukeconran.dev)**
 
 ---
 
@@ -10,29 +10,27 @@ Real-time drowsiness detection that runs in your browser. No ML model needed at 
 
 When we started this project at the 2024 TAMU Datathon, the instinct was to reach for a deep learning model. We explored three approaches before landing on the right one.
 
-### Attempt 1 — Basic CNN on raw face images
+### Attempt 1: Basic CNN on raw face images
 
-The obvious first move: train a convolutional network to classify each frame as "drowsy" or "not drowsy."
+The obvious first move, the coolest in our mind: train a convolutional network to classify each frame as "drowsy" or "not drowsy."
 
-The problem surfaced immediately: **how do you label a single frame as drowsy?** Is a person drowsy because their eyes are partially closed in one frame? Or because they've been blinking slowly for the past five seconds? The labeling is fundamentally ambiguous for a single image. The model also had no concept of temporal context.
+The problem surfaced immediately: **How do you label a single frame as drowsy?** Is a person drowsy because their eyes are partially closed in one frame? Or because they've been blinking slowly for the past five seconds? The labeling is fundamentally ambiguous for a single image. The model also had no concept of temporal context.
 
 ![CNN training curves](assets/cnn_training_curves.png)
 
-### Attempt 2 — Custom ResNet50
+### Attempt 2: Custom ResNet50
 
-We built a ResNet50 from scratch (no pretrained weights) hoping a deeper architecture would extract better features. It didn't solve the labeling problem, and training was expensive relative to what we could achieve.
+On the side, we also built one ResNet50 from scratch (no pretrained weights) for conceptual understanding, while also incorporating the pretrained ResNet for transfer learning. We hoped a deeper architecture would extract better features and understand the frames. However, it didn't solve the labeling problem, and training was expensive relative to what we could achieve.
 
-### Attempt 3 — XGBoost on Engineered EAR Features
+### Attempt 3: XGBoost on Engineered EAR Features
 
-We shifted to a feature-engineering approach: use dlib's 68-point facial landmark predictor to extract the **Eye Aspect Ratio (EAR)** — a single number that measures how open each eye is — then feed a sliding window of EAR values into a gradient boosting classifier.
+We shifted to a feature-engineering approach: use dlib's 68-point facial landmark predictor to extract the **Eye Aspect Ratio (EAR)**. This is a single number that measures how open each eye is, and can be used by having a sliding window of EAR values that a gradient boosting classifier could be trained upon.
 
-This was much better. But it still had two problems:
-1. The model was a black box — we couldn't explain *why* a particular window was flagged.
-2. It required training data with temporal labels, which we didn't have cleanly.
+This was much better. However, as you can with the distributions, they are not very seperable at all, so we searched for a final solution.
 
 ![EAR distributions per subject](assets/ear_distributions.png)
 
-### Final Approach — Just Use a Threshold
+### Final Approach: Just Use a Threshold
 
 We asked: do we even need a model?
 
@@ -46,7 +44,7 @@ Then we grid-searched two parameters over 25 subjects from the DDD dataset:
 drowsy = (frames_below_threshold / window_size) >= alert_pct
 ```
 
-No model. No training. No black box. Just transparent, fast, cheap math.
+This was a solution that required no training and could not be a black box, it was just simple math. This is what we should have tried first, what any data scientist should try first when encountering a problem. Luckily, we stumbled upon it here at the end.
 
 ---
 
@@ -64,7 +62,7 @@ Grid search over 16 threshold values (0.75–0.90) × 21 alert percentages (0.20
 
 ![App screenshot](assets/app_screenshot.png)
 
-Everything runs in your browser — no server needed. MediaPipe Face Mesh (WebAssembly) extracts 468 facial landmarks per frame client-side. The EAR is computed in JavaScript, the rolling window is maintained locally, and the alert fires without any network round-trip. The EAR trace plots in real time alongside your personal threshold line.
+Everything runs in your browser with no server needed. MediaPipe Face Mesh (WebAssembly), a more sophisticated version of dlib, extracts 468 facial landmarks per frame client-side. The EAR is computed in JavaScript, the rolling window is maintained locally, and the alert fires without any network round-trip. The EAR trace plots in real time alongside your personal threshold line.
 
 ---
 

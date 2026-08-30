@@ -24,8 +24,8 @@
     min-height: 100vh;
   }
 
-  /* Wake-up banner */
-  #wake-banner {
+  /* Loading banner */
+  #load-banner {
     position: fixed; top: 0; left: 0; right: 0; z-index: 100;
     background: #1e293b;
     border-bottom: 1px solid var(--border);
@@ -33,7 +33,7 @@
     display: flex; align-items: center; gap: 12px;
     font-size: 14px;
   }
-  #wake-banner.hidden { display: none; }
+  #load-banner.hidden { display: none; }
   .spinner {
     width: 18px; height: 18px;
     border: 2px solid var(--border);
@@ -44,10 +44,7 @@
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  header {
-    padding: 60px 20px 20px;
-    text-align: center;
-  }
+  header { padding: 60px 20px 20px; text-align: center; }
   header h1 { font-size: 1.8rem; font-weight: 700; }
   header p { color: var(--muted); margin-top: 6px; font-size: 0.95rem; }
 
@@ -72,7 +69,6 @@
   }
   .card h2 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 14px; }
 
-  /* Webcam card */
   #cam-card { grid-column: 1 / -1; }
   #cam-wrap {
     position: relative;
@@ -81,54 +77,43 @@
     overflow: hidden;
     aspect-ratio: 4/3;
   }
-  #webcam, #overlay-canvas {
+  #webcam {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     object-fit: cover;
+    transform: scaleX(-1);
   }
-  #webcam { transform: scaleX(-1); }
-  #overlay-canvas { transform: scaleX(-1); }
+  #overlay-canvas {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    transform: scaleX(-1);
+  }
 
-  /* Status badge */
   #status-badge {
     position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
     padding: 6px 18px;
     border-radius: 999px;
-    font-weight: 700;
-    font-size: 1rem;
-    letter-spacing: 0.05em;
+    font-weight: 700; font-size: 1rem; letter-spacing: 0.05em;
     backdrop-filter: blur(6px);
-    background: rgba(0,0,0,0.6);
-    color: var(--muted);
-    white-space: nowrap;
-    transition: background 0.2s, color 0.2s;
+    background: rgba(0,0,0,0.6); color: var(--muted);
+    white-space: nowrap; transition: background 0.2s, color 0.2s;
   }
   #status-badge.alert  { background: rgba(34,197,94,0.25); color: var(--green); }
-  #status-badge.drowsy { background: rgba(239,68,68,0.3);  color: var(--red); animation: pulse 0.6s ease-in-out infinite alternate; }
+  #status-badge.drowsy { background: rgba(239,68,68,0.3); color: var(--red); animation: pulse 0.6s ease-in-out infinite alternate; }
   #status-badge.calib  { background: rgba(99,102,241,0.25); color: #a5b4fc; }
-  @keyframes pulse { from { opacity: 1; } to { opacity: 0.5; } }
+  @keyframes pulse { from { opacity:1; } to { opacity:0.5; } }
 
-  /* Controls */
   #controls { display: flex; align-items: center; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
   button {
-    padding: 10px 22px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    background: var(--accent);
-    color: #fff;
-    transition: opacity 0.15s;
+    padding: 10px 22px; font-size: 0.9rem; font-weight: 600;
+    border: none; border-radius: 8px; cursor: pointer;
+    background: var(--accent); color: #fff; transition: opacity 0.15s;
   }
   button:disabled { opacity: 0.4; cursor: not-allowed; }
   button:not(:disabled):hover { opacity: 0.85; }
   #ear-readout { font-size: 0.85rem; color: var(--muted); margin-left: auto; }
 
-  /* Chart card */
   #chart-card { grid-column: 1 / -1; }
   #ear-chart-wrap { height: 200px; }
 
-  /* Info cards */
   .stat { font-size: 1.6rem; font-weight: 700; color: var(--accent); }
   .stat-label { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
   .step { display: flex; gap: 12px; margin-bottom: 12px; }
@@ -138,9 +123,9 @@
 </head>
 <body>
 
-<div id="wake-banner">
+<div id="load-banner">
   <div class="spinner"></div>
-  <span id="wake-text">Connecting to backend — this may take up to 30 seconds on first load...</span>
+  <span id="load-text">Loading face detection model...</span>
 </div>
 
 <header>
@@ -155,7 +140,7 @@
     <div id="cam-wrap">
       <video id="webcam" autoplay playsinline muted></video>
       <canvas id="overlay-canvas"></canvas>
-      <div id="status-badge">Waiting...</div>
+      <div id="status-badge">Loading...</div>
     </div>
     <div id="controls">
       <button id="calib-btn" disabled onclick="startCalibration()">Begin Calibration</button>
@@ -172,9 +157,9 @@
 
   <div class="card">
     <h2>How It Works</h2>
-    <div class="step"><div class="step-num">1</div><div class="step-text"><strong>Calibrate</strong> — 3-second window captures your personal alert EAR baseline while you look normally at the camera.</div></div>
-    <div class="step"><div class="step-num">2</div><div class="step-text"><strong>Detect</strong> — Each frame is sent to the backend. Your EAR is compared to your personal threshold across a 30-frame rolling window.</div></div>
-    <div class="step"><div class="step-num">3</div><div class="step-text"><strong>Alert</strong> — If ≥32% of frames in the window fall below your threshold, a drowsy alert fires.</div></div>
+    <div class="step"><div class="step-num">1</div><div class="step-text"><strong>Calibrate</strong> — 3 seconds captures your personal alert EAR baseline while you look normally at the camera.</div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-text"><strong>Detect</strong> — MediaPipe extracts 468 facial landmarks per frame. Your EAR is compared to your personal threshold across a 30-frame rolling window.</div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-text"><strong>Alert</strong> — If ≥32% of frames in the window fall below your threshold, a drowsy alert fires with an audio beep.</div></div>
   </div>
 
   <div class="card">
@@ -189,207 +174,86 @@
 
 </div>
 
-<script>
-// ─── Config ───────────────────────────────────────────────────────────────────
-const BACKEND_URL = 'https://YOUR-RENDER-URL.onrender.com'; // update after Render deploy
-const CALIB_FRAMES = 50;
-const WINDOW_FRAMES = 30;
-const ALERT_PCT = 0.32;
+<script type="module">
+import { FaceLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/vision_bundle.mjs";
 
-// ─── State ────────────────────────────────────────────────────────────────────
+// ─── Config ────────────────────────────────────────────────────────────────────
+const CALIB_FRAMES  = 50;
+const WINDOW_FRAMES = 30;
+const ALERT_PCT     = 0.32;
+const EAR_RATIO     = 0.81;
+
+// MediaPipe Face Mesh eye landmark indices (478-point model)
+const LEFT_EYE  = [33, 160, 158, 133, 153, 144];
+const RIGHT_EYE = [362, 385, 387, 263, 373, 380];
+
+// ─── State ─────────────────────────────────────────────────────────────────────
+let faceLandmarker = null;
 let baseline = null;
 let earWindow = [];
-let chartLabels = [];
-let chartData = [];
-let chartThreshold = [];
+let calibrating = false;
+let calibEars = [];
 let detecting = false;
 let audioCtx = null;
+let lastBeep = 0;
+let lastVideoTime = -1;
 
-// ─── DOM refs ─────────────────────────────────────────────────────────────────
-const webcam      = document.getElementById('webcam');
-const canvas      = document.getElementById('overlay-canvas');
-const ctx2d       = canvas.getContext('2d');
-const badge       = document.getElementById('status-badge');
-const calibBtn    = document.getElementById('calib-btn');
-const earReadout  = document.getElementById('ear-readout');
-const wakeBanner  = document.getElementById('wake-banner');
-const wakeText    = document.getElementById('wake-text');
+// ─── DOM ───────────────────────────────────────────────────────────────────────
+const video      = document.getElementById('webcam');
+const canvas     = document.getElementById('overlay-canvas');
+const ctx2d      = canvas.getContext('2d');
+const badge      = document.getElementById('status-badge');
+const calibBtn   = document.getElementById('calib-btn');
+const earReadout = document.getElementById('ear-readout');
+const loadBanner = document.getElementById('load-banner');
+const loadText   = document.getElementById('load-text');
 
-// ─── Chart ────────────────────────────────────────────────────────────────────
+// ─── EAR math ──────────────────────────────────────────────────────────────────
+function dist(a, b) {
+  return Math.hypot(a.x - b.x, a.y - b.y);
+}
+function ear(lm, pts) {
+  const [p1,p2,p3,p4,p5,p6] = pts.map(i => lm[i]);
+  return (dist(p2,p6) + dist(p3,p5)) / (2 * dist(p1,p4));
+}
+function meanEar(lm) {
+  return (ear(lm, LEFT_EYE) + ear(lm, RIGHT_EYE)) / 2;
+}
+
+// ─── Chart ─────────────────────────────────────────────────────────────────────
+const chartLabels    = [];
+const chartData      = [];
+const chartThreshold = [];
 const chart = new Chart(document.getElementById('ear-chart'), {
   type: 'line',
   data: {
     labels: chartLabels,
     datasets: [
-      {
-        label: 'EAR',
-        data: chartData,
-        borderColor: '#6366f1',
-        backgroundColor: 'rgba(99,102,241,0.08)',
-        borderWidth: 2,
-        pointRadius: 0,
-        tension: 0.3,
-        fill: true,
-      },
-      {
-        label: 'Threshold',
-        data: chartThreshold,
-        borderColor: '#ef4444',
-        borderWidth: 1.5,
-        borderDash: [4, 4],
-        pointRadius: 0,
-        tension: 0,
-      }
+      { label: 'EAR', data: chartData, borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,0.08)', borderWidth: 2, pointRadius: 0, tension: 0.3, fill: true },
+      { label: 'Threshold', data: chartThreshold, borderColor: '#ef4444', borderWidth: 1.5, borderDash: [4,4], pointRadius: 0 }
     ]
   },
   options: {
-    animation: false,
-    responsive: true,
-    maintainAspectRatio: false,
+    animation: false, responsive: true, maintainAspectRatio: false,
     scales: {
       x: { display: false },
-      y: {
-        min: 0.1, max: 0.5,
-        grid: { color: '#2a2d3a' },
-        ticks: { color: '#64748b', font: { size: 11 } }
-      }
+      y: { min: 0.1, max: 0.5, grid: { color: '#2a2d3a' }, ticks: { color: '#64748b', font: { size: 11 } } }
     },
     plugins: { legend: { labels: { color: '#64748b', font: { size: 11 } } } }
   }
 });
 
-function pushChartPoint(ear) {
-  const MAX = 120;
-  const t = baseline ? baseline * 0.81 : null;
+function pushChart(earVal) {
+  const thresh = baseline ? baseline * EAR_RATIO : null;
   chartLabels.push('');
-  chartData.push(ear !== null ? +ear.toFixed(4) : null);
-  chartThreshold.push(t ? +t.toFixed(4) : null);
-  if (chartLabels.length > MAX) {
-    chartLabels.shift(); chartData.shift(); chartThreshold.shift();
-  }
+  chartData.push(earVal !== null ? +earVal.toFixed(4) : null);
+  chartThreshold.push(thresh ? +thresh.toFixed(4) : null);
+  if (chartLabels.length > 120) { chartLabels.shift(); chartData.shift(); chartThreshold.shift(); }
   chart.update('none');
 }
 
-// ─── Wake-up ping ─────────────────────────────────────────────────────────────
-async function waitForBackend() {
-  let attempt = 0;
-  while (true) {
-    try {
-      const res = await fetch(`${BACKEND_URL}/ping`, { signal: AbortSignal.timeout(4000) });
-      if (res.ok) break;
-    } catch (_) {}
-    attempt++;
-    wakeText.textContent = `Connecting to backend — attempt ${attempt}… (free tier may take up to 30s to wake)`;
-    await new Promise(r => setTimeout(r, 2000));
-  }
-  wakeBanner.classList.add('hidden');
-  calibBtn.disabled = false;
-}
-
-// ─── Webcam setup ─────────────────────────────────────────────────────────────
-async function startWebcam() {
-  const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 640, height: 480 } });
-  webcam.srcObject = stream;
-  await new Promise(r => webcam.onloadedmetadata = r);
-  canvas.width  = webcam.videoWidth;
-  canvas.height = webcam.videoHeight;
-}
-
-// ─── Frame capture ────────────────────────────────────────────────────────────
-function captureFrame(quality = 0.6) {
-  const tmp = document.createElement('canvas');
-  tmp.width  = webcam.videoWidth  || 320;
-  tmp.height = webcam.videoHeight || 240;
-  tmp.getContext('2d').drawImage(webcam, 0, 0);
-  // strip data:image/jpeg;base64, prefix
-  return tmp.toDataURL('image/jpeg', quality).split(',')[1];
-}
-
-async function postFrame(endpoint, frameB64) {
-  const res = await fetch(`${BACKEND_URL}${endpoint}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ frame: frameB64 }),
-  });
-  return res.json();
-}
-
-// ─── Calibration ──────────────────────────────────────────────────────────────
-async function startCalibration() {
-  // unlock audio context on this user gesture
-  audioCtx = new AudioContext();
-
-  calibBtn.disabled = true;
-  badge.className = 'calib';
-  badge.textContent = 'Calibrating…';
-  detecting = false;
-  baseline = null;
-  earWindow = [];
-
-  const ears = [];
-  for (let i = 0; i < CALIB_FRAMES; i++) {
-    const frame = captureFrame(0.7);
-    try {
-      const { ear } = await postFrame('/calibrate_frame', frame);
-      if (ear !== null) ears.push(ear);
-    } catch (_) {}
-    earReadout.textContent = `Calibrating: ${i + 1}/${CALIB_FRAMES}`;
-    await new Promise(r => setTimeout(r, 60));
-  }
-
-  if (ears.length < 10) {
-    badge.className = '';
-    badge.textContent = 'No face detected — try again';
-    calibBtn.disabled = false;
-    return;
-  }
-
-  baseline = ears.reduce((a, b) => a + b, 0) / ears.length;
-  earReadout.textContent = `Baseline EAR: ${baseline.toFixed(3)}`;
-  badge.className = 'alert';
-  badge.textContent = 'NOT DROWSY';
-  detecting = true;
-  detectLoop();
-}
-
-// ─── Detection loop ───────────────────────────────────────────────────────────
-async function detectLoop() {
-  if (!detecting) return;
-  const frame = captureFrame(0.6);
-  try {
-    const { ear } = await postFrame('/frame', frame);
-    processEar(ear);
-  } catch (_) {}
-  if (detecting) requestAnimationFrame(detectLoop);
-}
-
-function processEar(ear) {
-  pushChartPoint(ear);
-  if (ear === null) {
-    earReadout.textContent = 'EAR: — (no face)';
-    return;
-  }
-  earReadout.textContent = `EAR: ${ear.toFixed(3)}  |  baseline: ${baseline.toFixed(3)}`;
-  const threshold = baseline * 0.81;
-  earWindow.push(ear < threshold);
-  if (earWindow.length > WINDOW_FRAMES) earWindow.shift();
-
-  if (earWindow.length === WINDOW_FRAMES) {
-    const drowsyFrac = earWindow.filter(Boolean).length / WINDOW_FRAMES;
-    if (drowsyFrac >= ALERT_PCT) {
-      badge.className = 'drowsy';
-      badge.textContent = 'DROWSY';
-      playBeep();
-    } else {
-      badge.className = 'alert';
-      badge.textContent = 'NOT DROWSY';
-    }
-  }
-}
-
-// ─── Audio alert ─────────────────────────────────────────────────────────────
-let lastBeep = 0;
-function playBeep() {
+// ─── Audio ─────────────────────────────────────────────────────────────────────
+function beep() {
   if (!audioCtx || Date.now() - lastBeep < 2000) return;
   lastBeep = Date.now();
   const osc = audioCtx.createOscillator();
@@ -401,11 +265,108 @@ function playBeep() {
   osc.start(); osc.stop(audioCtx.currentTime + 0.6);
 }
 
-// ─── Init ─────────────────────────────────────────────────────────────────────
-(async () => {
-  await startWebcam();
-  waitForBackend(); // non-blocking — runs wake-up pings in background
-})();
+// ─── Detection loop ────────────────────────────────────────────────────────────
+function detect() {
+  if (!faceLandmarker || video.readyState < 2) { requestAnimationFrame(detect); return; }
+
+  const now = performance.now();
+  if (video.currentTime !== lastVideoTime) {
+    lastVideoTime = video.currentTime;
+    const results = faceLandmarker.detectForVideo(video, now);
+
+    canvas.width  = video.videoWidth;
+    canvas.height = video.videoHeight;
+    ctx2d.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (results.faceLandmarks.length > 0) {
+      const lm = results.faceLandmarks[0];
+      const e = meanEar(lm);
+
+      // Draw eye outlines
+      ctx2d.strokeStyle = '#6366f1';
+      ctx2d.lineWidth = 1.5;
+      [LEFT_EYE, RIGHT_EYE].forEach(pts => {
+        ctx2d.beginPath();
+        pts.forEach((idx, i) => {
+          const x = lm[idx].x * canvas.width;
+          const y = lm[idx].y * canvas.height;
+          i === 0 ? ctx2d.moveTo(x, y) : ctx2d.lineTo(x, y);
+        });
+        ctx2d.closePath(); ctx2d.stroke();
+      });
+
+      if (calibrating) {
+        calibEars.push(e);
+        earReadout.textContent = `Calibrating: ${calibEars.length}/${CALIB_FRAMES}`;
+        if (calibEars.length >= CALIB_FRAMES) {
+          calibrating = false;
+          baseline = calibEars.reduce((a,b) => a+b, 0) / calibEars.length;
+          earReadout.textContent = `Baseline EAR: ${baseline.toFixed(3)}`;
+          badge.className = 'alert';
+          badge.textContent = 'NOT DROWSY';
+          detecting = true;
+        }
+      } else if (detecting) {
+        earReadout.textContent = `EAR: ${e.toFixed(3)}  |  baseline: ${baseline.toFixed(3)}`;
+        earWindow.push(e < baseline * EAR_RATIO);
+        if (earWindow.length > WINDOW_FRAMES) earWindow.shift();
+        if (earWindow.length === WINDOW_FRAMES) {
+          const frac = earWindow.filter(Boolean).length / WINDOW_FRAMES;
+          if (frac >= ALERT_PCT) {
+            badge.className = 'drowsy'; badge.textContent = 'DROWSY';
+            beep();
+          } else {
+            badge.className = 'alert'; badge.textContent = 'NOT DROWSY';
+          }
+        }
+        pushChart(e);
+      }
+    } else if (detecting) {
+      earReadout.textContent = 'EAR: — (no face)';
+      pushChart(null);
+    }
+  }
+  requestAnimationFrame(detect);
+}
+
+// ─── Calibration ───────────────────────────────────────────────────────────────
+window.startCalibration = function() {
+  audioCtx = new AudioContext();
+  calibBtn.disabled = true;
+  badge.className = 'calib'; badge.textContent = 'Calibrating…';
+  detecting = false; calibrating = true; calibEars = []; earWindow = [];
+};
+
+// ─── Init ──────────────────────────────────────────────────────────────────────
+async function init() {
+  // Start webcam
+  const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 640, height: 480 } });
+  video.srcObject = stream;
+
+  // Load MediaPipe
+  loadText.textContent = 'Loading face detection model (~10 MB)...';
+  const vision = await FilesetResolver.forVisionTasks(
+    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm"
+  );
+  faceLandmarker = await FaceLandmarker.createFromOptions(vision, {
+    baseOptions: {
+      modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
+      delegate: "GPU"
+    },
+    runningMode: "VIDEO",
+    numFaces: 1
+  });
+
+  loadBanner.classList.add('hidden');
+  badge.textContent = 'Ready';
+  calibBtn.disabled = false;
+  requestAnimationFrame(detect);
+}
+
+init().catch(err => {
+  loadText.textContent = `Error: ${err.message}`;
+  console.error(err);
+});
 </script>
 
 </body>

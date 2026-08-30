@@ -64,7 +64,7 @@ Grid search over 16 threshold values (0.75–0.90) × 21 alert percentages (0.20
 
 ![App screenshot](assets/app_screenshot.png)
 
-The browser captures webcam frames and sends them to a Python/dlib backend on Render. The backend extracts the EAR and returns it; the frontend maintains the rolling window and fires the alert. The EAR trace plots in real time alongside your personal threshold line.
+Everything runs in your browser — no server needed. MediaPipe Face Mesh (WebAssembly) extracts 468 facial landmarks per frame client-side. The EAR is computed in JavaScript, the rolling window is maintained locally, and the alert fires without any network round-trip. The EAR trace plots in real time alongside your personal threshold line.
 
 ---
 
@@ -100,11 +100,10 @@ jupyter notebook notebooks/
 
 | Layer | Tool |
 |-------|------|
-| Landmark detection | dlib 68-point predictor |
-| Backend | Python / Flask / flask-cors |
-| Backend host | Render (free tier) |
+| Landmark detection (hosted) | MediaPipe Face Mesh JS (WebAssembly, in-browser) |
+| Landmark detection (local) | dlib 68-point predictor (Python) |
 | Frontend | Vanilla JS / Chart.js |
-| Frontend host | Vercel |
+| Host | Vercel (static) |
 | Exploration | TensorFlow, Keras, scikit-learn, XGBoost |
 
 ---

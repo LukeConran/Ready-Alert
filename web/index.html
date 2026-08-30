@@ -159,14 +159,14 @@
     <h2>How It Works</h2>
     <div class="step"><div class="step-num">1</div><div class="step-text"><strong>Calibrate</strong> — 3 seconds captures your personal alert EAR baseline while you look normally at the camera.</div></div>
     <div class="step"><div class="step-num">2</div><div class="step-text"><strong>Detect</strong> — MediaPipe extracts 468 facial landmarks per frame. Your EAR is compared to your personal threshold across a 30-frame rolling window.</div></div>
-    <div class="step"><div class="step-num">3</div><div class="step-text"><strong>Alert</strong> — If ≥32% of frames in the window fall below your threshold, a drowsy alert fires with an audio beep.</div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-text"><strong>Alert</strong> — If ≥48% of frames in the window fall below your threshold, a drowsy alert fires with an audio beep.</div></div>
   </div>
 
   <div class="card">
     <h2>Parameters (Grid-Searched)</h2>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px">
-      <div><div class="stat">0.81</div><div class="stat-label">EAR threshold<br>(ratio of personal baseline)</div></div>
-      <div><div class="stat">32%</div><div class="stat-label">Alert percentage<br>(of 30-frame window)</div></div>
+      <div><div class="stat">0.79</div><div class="stat-label">EAR threshold<br>(ratio of personal baseline)</div></div>
+      <div><div class="stat">48%</div><div class="stat-label">Alert percentage<br>(of 4-second window)</div></div>
       <div><div class="stat">25</div><div class="stat-label">Subjects in parameter sweep</div></div>
       <div><div class="stat">0</div><div class="stat-label">ML models at inference time</div></div>
     </div>

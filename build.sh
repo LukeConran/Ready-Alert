@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -e
 
+# Install dlib build dependencies via apt to speed up compilation
+if command -v apt-get &>/dev/null; then
+  apt-get install -y --no-install-recommends cmake libopenblas-dev liblapack-dev libx11-dev
+fi
+
 pip install -r requirements.txt
 
 mkdir -p data

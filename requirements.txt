@@ -1,4 +1,4 @@
-dlib==20.0.1
+dlib==19.24.6
 Flask==3.1.1
 flask-cors==5.0.1
 numpy==2.1.3

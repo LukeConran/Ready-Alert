@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: ready-alert-backend
+    runtime: python
+    buildCommand: bash build.sh
+    startCommand: python live_alert.py
+    envVars:
+      - key: PORT
+        value: 10000
+    plan: free

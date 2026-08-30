@@ -1,22 +1,25 @@
 import sys
 import json
 import time
+import base64
 import threading
 import cv2
 import numpy as np
-from flask import Flask, Response
+from flask import Flask, Response, request
+from flask_cors import CORS
 
 sys.path.insert(0, 'detection')
 import detector
 
-detector.EAR_THRESHOLD = 0.8
-detector.ALERT_PCT = 0.52
+detector.EAR_THRESHOLD = 0.81
+detector.ALERT_PCT = 0.32
 detector.WINDOW_FRAMES = 30
 
 dlib_detector  = detector.detector
 dlib_predictor = detector.predictor
 
 app = Flask(__name__)
+CORS(app)
 
 
 class CameraThread(threading.Thread):
@@ -215,5 +218,39 @@ def status_route():
         return Response(json.dumps({'status': cam.status, 'ear': cam.ear}), mimetype='application/json')
 
 
+@app.route('/ping')
+def ping():
+    return Response(json.dumps({'ok': True}), mimetype='application/json')
+
+
+@app.route('/frame', methods=['POST'])
+def frame_route():
+    data = request.get_json(force=True)
+    img_data = base64.b64decode(data['frame'])
+    nparr = np.frombuffer(img_data, np.uint8)
+    frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    if frame is None:
+        return Response(json.dumps({'ear': None, 'error': 'decode_failed'}), mimetype='application/json')
+    ear = detector.extract_ear(frame)
+    result = {'ear': round(float(ear), 4) if ear is not None else None}
+    return Response(json.dumps(result), mimetype='application/json')
+
+
+@app.route('/calibrate_frame', methods=['POST'])
+def calibrate_frame_route():
+    data = request.get_json(force=True)
+    img_data = base64.b64decode(data['frame'])
+    nparr = np.frombuffer(img_data, np.uint8)
+    frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    if frame is None:
+        return Response(json.dumps({'ear': None}), mimetype='application/json')
+    ear = detector.extract_ear(frame)
+    return Response(json.dumps({'ear': round(float(ear), 4) if ear is not None else None}),
+                    mimetype='application/json')
+
+
+import os
+
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=5001, debug=False, threaded=True)
+    port = int(os.environ.get('PORT', 5001))
+    app.run(host='0.0.0.0', port=port, debug=False, threaded=True)

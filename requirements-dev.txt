@@ -1,0 +1,15 @@
+# Exploration notebooks only — not needed at runtime
+-r requirements.txt
+ipykernel==6.29.5
+ipython==9.3.0
+jupyter_client==8.6.3
+jupyter_core==5.8.1
+keras==3.10.0
+matplotlib==3.11.0
+mediapipe==1.0.1
+pandas==3.0.3
+scikit-learn==1.9.0
+scipy==1.17.1
+split-folders==0.6.1
+tensorflow==2.20.0
+xgboost
